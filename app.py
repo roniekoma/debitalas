@@ -20,7 +20,7 @@ def calculate_cutting_plan(requests, bar_length=1200):
 
 st.title("Vasdarab Vágási Terv")
 
-st.header("Adja meg a szükséges méreteket (méret centiméterben és darabszám):")
+st.subheader("Adja meg a szükséges méreteket!")
 input_size = st.text_input("Méret (centiméterben):")
 input_quantity = st.text_input("Darabszám:")
 
@@ -42,6 +42,13 @@ if st.button("Hozzáadás"):
     else:
         st.error("Kérjük, adjon meg érvényes méretet és darabszámot.")
 
+st.subheader("Jelenlegi kérések:")
+if st.session_state.requests:
+    for size, quantity in st.session_state.requests.items():
+        st.write(f"Méret: {size} centiméter, Darabszám: {quantity}")
+else:
+    st.write("Nincsenek kérések.")
+
 if st.button("Számítás"):
     if st.session_state.requests:
         cuts, total_bars = calculate_cutting_plan(st.session_state.requests)
@@ -50,10 +57,3 @@ if st.button("Számítás"):
             st.write(f"{i+1}. 1200 centiméteres darab vágásai: {cut['pieces']}, maradék: {cut['remaining']} centiméter")
     else:
         st.error("Kérjük, adjon meg méreteket és darabszámot.")
-
-st.header("Jelenlegi kérések:")
-if st.session_state.requests:
-    for size, quantity in st.session_state.requests.items():
-        st.write(f"Méret: {size} centiméter, Darabszám: {quantity}")
-else:
-    st.write("Nincsenek kérések.")
