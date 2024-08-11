@@ -39,7 +39,7 @@ def calculate_cutting_plan(requests, bar_length=1200):
     solution = backtrack_cutting(requests, bar_length)
     return solution['cuts'], len(solution['cuts']), solution['waste']
 
-st.title("Vasdarab Vágási Terv")
+st.title("Vasdarab Vágási Terv 2.0")
 
 st.subheader("Adja meg a szükséges méreteket!")
 input_size = st.text_input("Méret (centiméterben):")
