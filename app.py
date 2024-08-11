@@ -1,22 +1,43 @@
 import streamlit as st
 
+def backtrack_cutting(requests, bar_length=1200, current_cut=None, cuts=None, best_solution=None):
+    if current_cut is None:
+        current_cut = {'pieces': [], 'remaining': bar_length}
+    if cuts is None:
+        cuts = []
+    if best_solution is None:
+        best_solution = {'cuts': [], 'waste': float('inf')}
+    
+    # Ha minden kérést teljesítettünk
+    if not requests:
+        total_waste = sum(cut['remaining'] for cut in cuts) + current_cut['remaining']
+        if total_waste < best_solution['waste']:
+            best_solution['cuts'] = cuts + [current_cut] if current_cut['pieces'] else cuts
+            best_solution['waste'] = total_waste
+        return best_solution
+
+    size, quantity = next(iter(requests.items()))
+    new_requests = requests.copy()
+    new_requests[size] -= 1
+    if new_requests[size] == 0:
+        del new_requests[size]
+
+    # Próbáljuk hozzáadni az aktuális rúdhoz
+    if current_cut['remaining'] >= size:
+        new_cut = {'pieces': current_cut['pieces'] + [size], 'remaining': current_cut['remaining'] - size}
+        backtrack_cutting(new_requests, bar_length, new_cut, cuts, best_solution)
+
+    # Próbáljunk új rudat kezdeni
+    new_cuts = cuts + [current_cut] if current_cut['pieces'] else cuts
+    new_cut = {'pieces': [size], 'remaining': bar_length - size}
+    backtrack_cutting(new_requests, bar_length, new_cut, new_cuts, best_solution)
+
+    return best_solution
+
 def calculate_cutting_plan(requests, bar_length=1200):
-    cuts = []
-    total_bars = 0
-    for size, quantity in requests.items():
-        for _ in range(quantity):
-            found = False
-            for cut in cuts:
-                if cut['remaining'] >= size:
-                    cut['pieces'].append(size)
-                    cut['remaining'] -= size
-                    found = True
-                    break
-            if not found:
-                new_cut = {'pieces': [size], 'remaining': bar_length - size}
-                cuts.append(new_cut)
-                total_bars += 1
-    return cuts, total_bars
+    total_requests = sum(requests.values())
+    solution = backtrack_cutting(requests, bar_length)
+    return solution['cuts'], len(solution['cuts']), solution['waste']
 
 st.title("Vasdarab Vágási Terv")
 
@@ -51,8 +72,9 @@ else:
 
 if st.button("Számítás"):
     if st.session_state.requests:
-        cuts, total_bars = calculate_cutting_plan(st.session_state.requests)
+        cuts, total_bars, total_waste = calculate_cutting_plan(st.session_state.requests)
         st.write(f"Összesen szükséges 12 méteres (1200 centiméteres) darabok száma: {total_bars}")
+        st.write(f"Teljes hulladék: {total_waste} centiméter")
         for i, cut in enumerate(cuts):
             st.write(f"{i+1}. 1200 centiméteres darab vágásai: {cut['pieces']}, maradék: {cut['remaining']} centiméter")
     else:
